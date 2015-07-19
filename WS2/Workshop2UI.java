@@ -105,12 +105,17 @@ public class Workshop2UI extends JFrame {
 
 			viewportPopup.addSeparator();
 			
-			JMenuItem showHistogramMenuItem = new JMenuItem("Task 5: histogram");
+			JMenuItem showHistogramMenuItem = new JMenuItem("Task 5: show histogram");
 			showHistogramMenuItem.addActionListener(this);
 			showHistogramMenuItem.setActionCommand("show histogram");
 			viewportPopup.add(showHistogramMenuItem);
 
-			JMenuItem histogramEqualizationMenuItem = new JMenuItem("Task 6: histogramEqualization");
+			JMenuItem showCumulativeHistogramMenuItem = new JMenuItem("Task 6: show cumulative histogram");
+			showCumulativeHistogramMenuItem.addActionListener(this);
+			showCumulativeHistogramMenuItem.setActionCommand("show cumulativeHistogram");
+			viewportPopup.add(showCumulativeHistogramMenuItem);
+
+			JMenuItem histogramEqualizationMenuItem = new JMenuItem("Task 7: histogramEqualization");
 			histogramEqualizationMenuItem.addActionListener(this);
 			histogramEqualizationMenuItem.setActionCommand("histogram equalization");
 			viewportPopup.add(histogramEqualizationMenuItem);
@@ -208,7 +213,18 @@ public class Workshop2UI extends JFrame {
 					frame.setResizable(false);
 					frame.setVisible(true);
 				}
-			}  else if (e.getActionCommand().equals("histogram equalization")) {
+			} else if (e.getActionCommand().equals("show cumulativeHistogram")) {
+				if (img!=null) {
+					JFrame frame = new JFrame();
+					frame.setTitle("Cumulative Histogram");					
+					byte[] imgData = ((DataBufferByte)img.getRaster().getDataBuffer()).getData();
+					frame.add(new HistogramPanel(imgProcessor.cumulativeHistogram(imgData)));
+					frame.pack();
+					frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+					frame.setResizable(false);
+					frame.setVisible(true);
+				}
+			} else if (e.getActionCommand().equals("histogram equalization")) {
 				if (img!=null) {
 					byte[] imgData = ((DataBufferByte)img.getRaster().getDataBuffer()).getData();
 					long start = System.nanoTime();
