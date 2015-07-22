@@ -83,19 +83,30 @@ public class Workshop2 {
 	 */
 	public int[] cumulativeHistogram (byte[] img) {
 		System.out.println("TODO: Task 6");
-		int[] histogram = histogram(img);
-		int[] cumHist = new int[histogram.length];
+		int[] histogram = histogram(img);//histogram of input img
 
-		cumHist[0] = histogram[0];
-		for(int i = 1; i < histogram.length; i++){
-			cumHist[i] = (histogram[i] + cumHist[i-1]);
+		int[] cumHist = new int[histogram.length];
+		for(int i = 0; i < cumHist.length; i++){
+			for(int j = 0; j <= i; j++){
+				cumHist[i] += histogram[j];
+			}
+			cumHist[i] = (cumHist[i] * 255 / img.length) & 0xff;
 		}
-		int[] returnHist = new int[cumHist.length];
-		for(int i = 0; i < cumHist.length; i ++){
-			returnHist[i] = 7*cumHist[i]/img.length;
-//			returnHist[i] = Math.round(7*cumHist[i]/img.length);
-		}
-		return returnHist;
+		return cumHist;
+
+
+
+
+//		cumHist[0] = histogram[0];
+//		for(int i = 1; i < histogram.length; i++){
+//			cumHist[i] = (histogram[i] + cumHist[i-1]);
+//		}
+//		int[] returnHist = new int[cumHist.length];
+//		for(int i = 0; i < cumHist.length; i ++){
+//			returnHist[i] = 7*cumHist[i]/img.length;
+////			returnHist[i] = Math.round(7*cumHist[i]/img.length);
+//		}
+//		return returnHist;
 	}
 
 	/**
@@ -245,7 +256,5 @@ public class Workshop2 {
 			}
 			img[i] = (byte)(sum & 0xff);
 		}
-
-
 	}
 }
