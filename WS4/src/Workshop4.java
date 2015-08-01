@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 public class Workshop4 {
 
    /**
@@ -23,6 +24,23 @@ public class Workshop4 {
 			f[i] = (byte)mag;
 		}
 	}
+	public void boxSmoothFilter(double[] img, int w, int h, int filterSize) {
+		double[] new_img = img.clone();
+		int halfFilterSize = filterSize / 2;
+		for(int i = 0; i < new_img.length; i++){//traverse the element in image
+			int x = i / w;
+			int y = i % w;
+			double sum = 0;
+			for(int j = -halfFilterSize; j <= halfFilterSize; j++){
+				for(int k = -halfFilterSize; k <= halfFilterSize; k++){
+					if((x + j) >= 0 && (x + j)< h && (y + k) >= 0 && (y + k) < w){
+						sum += new_img[(x + j) * w + (y + k)];
+					}
+				}
+			}
+			img[i] = sum / filterSize / filterSize;
+		}
+	}
 
 	/**
 	 * Task 2:
@@ -34,56 +52,38 @@ public class Workshop4 {
 	 * @param height of the image
 	 */
 	public void cornerResponseImage(byte[] f, int width, int height) {
-		double fx2[] = new double[f.length];
-		double fy2[] = new double[f.length];
-		double fxy[] = new double[f.length];
-		double R[] = new double[f.length];
-		for (int x = 1;x<height-1;x++) {
-			for (int y = 1;y<width-1;y++) {
-				int fx = ((int)f[(x+1)*width+y]&0xFF) - ((int)f[(x-1)*width+y]& 0xFF);
-				int fy = ((int)f[x*width+y+1]&0xFF) - ((int)f[x*width+y-1]& 0xFF);
-				fx2[x*width+y] = fx * fx;
-				fy2[x*width+y] = fy * fy;
-				fxy[x*width+y] = fx * fy;
+		double[] fx2 = new double[f.length];
+		double[] fy2 = new double[f.length];
+		double[] fxy = new double[f.length];
+		double[] R = new double[f.length];
+		// calculate the partial derivative of respect to x and y
+		for(int x = 1; x < height; x++){
+			for(int y = 1; y < width; y++){
+				int fx = ((int)f[x * width + y]&0xff) - ((int)f[(x-1) * width + y]&0xff);
+				int fy = ((int)f[x * width + y]&0xff) - ((int)f[x * width + y - 1]&0xff);
+				fx2[x * width + y] = fx * fx;
+				fy2[x * width + y] = fy * fy;
+				fxy[x * width + y] = fx * fy;
 			}
 		}
 
-		double[] filter = new double []{1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1};
-		for (int i=0;i<filter.length;i++)
-			filter[i] /= 25.0;
-		convolve(fx2, width, height, filter, 5);
-		convolve(fy2, width, height, filter, 5);
-		convolve(fxy, width, height, filter, 5);
+		// fx2, fy2, fxy filter by box
+		boxSmoothFilter(fx2, width, height, 5);
+		boxSmoothFilter(fy2, width, height, 5);
+		boxSmoothFilter(fxy, width, height, 5);
 
 
-		for (int x = 1;x<height-1;x++) {
-			for (int y = 1;y<width-1;y++) {
-				R[x * width + y] = fx2[x * width + y] * fy2[x * width + y] - fxy[x * width + y] * fxy[x * width + y] - 0.04
-						* ((fx2[x * width + y] + fy2[x * width + y]) * (fx2[x * width + y] + fy2[x * width + y]));
+		// calculate R
+		for(int i = 0; i < R.length; i ++){
+			R[i] = (fx2[i] * fy2[i] - fxy[i] * fxy[i]) - 0.04 * ((fx2[i] + fy2[i]) * (fx2[i] + fy2[i]));
+		}
+
+		for(int i = 0; i < R.length; i++){
+			if(R[i] > 100000){
+				f[i] = (byte)255;
 			}
+			else f[i]=(byte)0;
 		}
-
-		for (int i = 0; i < R.length; i++) {
-
-			if (R[i] < -100000) f[i] = (byte)255;
-			else f[i] = (byte)0;
-		}
-
 	}
 
-	private void convolve(double[] img, int w, int h, double filter[], int filterSize) {
-		double[] copy = new double[img.length];
-		System.arraycopy(img, 0, copy, 0, img.length);
-		int halfFilterSize = filterSize/2;
-		for (int y=halfFilterSize;y<h-halfFilterSize;y++){
-			for (int x=halfFilterSize;x<w-halfFilterSize;x++) {
-				int sum = 0;
-				for (int v=-halfFilterSize;v<=+halfFilterSize;v++){
-					for (int u=-halfFilterSize;u<=+halfFilterSize;u++)
-						sum += filter[(v+halfFilterSize)*filterSize+(u+halfFilterSize)]*(copy[(y+v)*w+(x+u)]);
-				}
-				img[y*w+x] = sum;
-			}
-		}
-	}
 }
