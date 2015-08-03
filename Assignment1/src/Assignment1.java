@@ -249,25 +249,24 @@ public class Assignment1 {
 	  */
   public void filtering2(byte[] img, int width, int height) {
       byte[] new_img = img.clone();
-
-      int filterSize = 3;
+      int filterSize = 5;
       int halfFilterSize = filterSize / 2;
       for(int i = 0; i < new_img.length; i++){
           int x = i / width;
           int y = i % width;
-          ArrayList<Byte> effectiveAdj = new ArrayList<>();
+          ArrayList<Integer> effectiveAdj = new ArrayList<>();
           for(int j = -halfFilterSize; j <= halfFilterSize; j++){
               for(int k = -halfFilterSize; k <= halfFilterSize; k++){
                   if((x + j) >= 0 && (x + j)< height && (y + k) >= 0 && (y + k) < width){
-                      effectiveAdj.add((new_img[(x + j) * width + (y + k)]));
+                      effectiveAdj.add((new_img[(x + j) * width + (y + k)]) & 0xff);
                   }
               }
           }
-//          while (effectiveAdj.size() < Math.pow(filterSize, 2)){
-//              effectiveAdj.add((byte) 0);
-//          }
+          while (effectiveAdj.size() < Math.pow(filterSize, 2)){
+              effectiveAdj.add(0);
+          }
           Collections.sort(effectiveAdj);
-          img[x * width + y] = effectiveAdj.get(effectiveAdj.size()/2);
+          img[x * width + y] = (byte)(effectiveAdj.get(effectiveAdj.size()/2) & 0xff);
       }
   }
 
