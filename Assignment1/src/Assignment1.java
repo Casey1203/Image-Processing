@@ -92,11 +92,15 @@ public class Assignment1 {
         Complex[] f_xy = new Complex[img.length];
         // transfer byte img into complex img
         for(int i = 0; i < img.length; i++){
-            f_xy[i] = new Complex((int)img[i] & 0xff, 0);
+            f_xy[i] = new Complex((img[i] & 0xff) * Math.pow(-1, i), 0);
         }
         // prepare F_xv by first fft recursion on y axis
+
         Complex[] F_xv = ftxvHelper(f_xy, width, height);
         // start second recursion on x axis
+        for(int i = 0; i < F_xv.length; i++){
+            F_xv[i] = F_xv[i].mul(Math.pow(-1, i / width));
+        }
         Complex[] F_uv = ftHelper(F_xv, width, height);
 
         // scale processing
