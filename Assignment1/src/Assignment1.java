@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
   * Assignment 1
   * You may only edit and submit this file to moodle before the deadline. 
@@ -245,6 +248,27 @@ public class Assignment1 {
 	  * 2 Mark
 	  */
   public void filtering2(byte[] img, int width, int height) {
+      byte[] new_img = img.clone();
+
+      int filterSize = 3;
+      int halfFilterSize = filterSize / 2;
+      for(int i = 0; i < new_img.length; i++){
+          int x = i / width;
+          int y = i % width;
+          ArrayList<Byte> effectiveAdj = new ArrayList<>();
+          for(int j = -halfFilterSize; j <= halfFilterSize; j++){
+              for(int k = -halfFilterSize; k <= halfFilterSize; k++){
+                  if((x + j) >= 0 && (x + j)< height && (y + k) >= 0 && (y + k) < width){
+                      effectiveAdj.add((new_img[(x + j) * width + (y + k)]));
+                  }
+              }
+          }
+//          while (effectiveAdj.size() < Math.pow(filterSize, 2)){
+//              effectiveAdj.add((byte) 0);
+//          }
+          Collections.sort(effectiveAdj);
+          img[x * width + y] = effectiveAdj.get(effectiveAdj.size()/2);
+      }
   }
 
 }
