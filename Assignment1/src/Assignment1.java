@@ -21,11 +21,11 @@ public class Assignment1 {
         }
         int K = height / 2;
 
-        //divide
+
         Complex[] F_xv_even = new Complex[K * width];
         Complex[] F_xv_odd = new Complex[K * width];
-
         Complex[] F_uv = new Complex[F_xv.length];
+
         // calculate f(x)_even and f(x)_odd
         for(int x = 0; x < K; x++){
             for(int v = 0; v < width; v++){
@@ -33,17 +33,50 @@ public class Assignment1 {
                 F_xv_odd[x * width + v] = F_xv[(2 * x + 1) * width + v];
             }
         }
-        Complex[] F_uv_even = ftHelper(F_xv_even, width, F_xv_even.length/width);
-        Complex[] F_uv_odd = ftHelper(F_xv_odd, width, F_xv_odd.length/width);
+        //divide
+        Complex[] F_uv_even = ftHelper(F_xv_even, width, F_xv_even.length / width);
+        Complex[] F_uv_odd = ftHelper(F_xv_odd, width, F_xv_odd.length / width);
+        //conquer
         for(int u = 0; u < K; u++){
             for(int v = 0; v < width; v++){
                 Complex F_uv_even_tmp = F_uv_even[u * width + v];
                 Complex F_uv_odd_tmp_mul_by_w = F_uv_odd[u * width + v].mul(Complex.fromPolar(1, -1.0 * Math.PI * u / (double) K));
                 F_uv[u * width + v] = F_uv_even_tmp.plus(F_uv_odd_tmp_mul_by_w);
-                F_uv[(u+K) * width + v] = F_uv_even[u * width + v].minus(F_uv_odd_tmp_mul_by_w);
+                F_uv[(u+K) * width + v] = F_uv_even_tmp.minus(F_uv_odd_tmp_mul_by_w);
             }
         }
         return F_uv;
+    }
+
+    public Complex[] ftxvHelper(Complex[] f_xy, int width, int height){
+        if(width <= 1){
+            return f_xy;
+        }
+        int K = width / 2;
+        // with respect to y
+        Complex[] f_xy_even = new Complex[K * height];
+        Complex[] f_xy_odd = new Complex[K * height];
+        Complex[] F_xv = new Complex[f_xy.length];
+        // calculate f(y)_even and f(y)_odd
+        for(int y = 0; y < K; y++){
+            for(int x = 0; x < height; x++){
+                f_xy_even[x * K + y] = f_xy[x * width + 2 * y];
+                f_xy_odd[x * K + y] = f_xy[x * width + 2 * y + 1];
+            }
+        }
+        //divide
+        Complex[] F_xv_even = ftxvHelper(f_xy_even, K, height);
+        Complex[] F_xv_odd = ftxvHelper(f_xy_odd, K, height);
+        //conquer
+        for(int x = 0; x < height; x++){
+            for(int v = 0; v < K; v++){
+                Complex F_xv_even_tmp = F_xv_even[x * K + v];
+                Complex F_xv_odd_tmp_mul_by_w = F_xv_odd[x * K + v].mul(Complex.fromPolar(1, -1.0 * Math.PI * v/(double)K));
+                F_xv[x * width + v] = F_xv_even_tmp.plus(F_xv_odd_tmp_mul_by_w);
+                F_xv[x * width + v + K] = F_xv_even_tmp.minus(F_xv_odd_tmp_mul_by_w);
+            }
+        }
+        return F_xv;
     }
 
     /**
@@ -56,26 +89,14 @@ public class Assignment1 {
 
 	public void fourierTransform(byte[] img, int width, int height) {
         long startTime = System.nanoTime();
-        byte[] new_img = img.clone();
-        Complex[] F_xv = new Complex[img.length];
-
-        // prepare F_xv
-        for(int x = 0; x < height; x++){
-            for(int v = 0; v < width; v++){
-                Complex sum = new Complex();
-                for(int y = 0; y < width; y++){
-                    double mag = new_img[x * width + y] * Math.pow(-1, y);
-                    double angle = -2 * Math.PI * v * y /(double)width;
-                    Complex tmp = Complex.fromPolar(mag, angle);
-                    sum = sum.plus(tmp);
-                }
-                F_xv[x * width + v] = sum;
-            }
+        Complex[] f_xy = new Complex[img.length];
+        // transfer byte img into complex img
+        for(int i = 0; i < img.length; i++){
+            f_xy[i] = new Complex((int)img[i] & 0xff, 0);
         }
-        long endTime = System.nanoTime();
-        System.out.print("run time: " + (endTime - startTime)/1000000 + "ms");
-        // start recursion
-
+        // prepare F_xv by first fft recursion on y axis
+        Complex[] F_xv = ftxvHelper(f_xy, width, height);
+        // start second recursion on x axis
         Complex[] F_uv = ftHelper(F_xv, width, height);
 
         // scale processing
@@ -87,9 +108,10 @@ public class Assignment1 {
         for(int i = 0; i < img.length; i++){
             img[i] = (byte)(c * F_uv[i].getNorm());
         }
-//        logTransformation(img);
+        logTransformation(img);
 
-
+        long endTime = System.nanoTime();
+        System.out.print("run time: " + (endTime - startTime) / 1000000 + "ms");
 	}
 
 	/**
