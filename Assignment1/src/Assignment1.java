@@ -149,16 +149,14 @@ public class Assignment1 {
         long startTime = System.nanoTime();
         Complex[] f_xy = new Complex[img.length];
         // transfer byte img into complex img
-        for(int i = 0; i < img.length; i++){
-            f_xy[i] = new Complex((img[i] & 0xff) * Math.pow(-1, i), 0);
+        for(int x = 0; x < height; x++){
+            for(int y = 0; y < width; y++){
+                f_xy[x * width + y] = new Complex((img[x * width + y] & 0xff) * Math.pow(-1, x+y), 0);
+            }
         }
         // prepare F_xv by first fft recursion on y axis
-
         Complex[] F_xv = fxvHelper(f_xy, width, height);
         // start second recursion on x axis
-        for(int i = 0; i < F_xv.length; i++){
-            F_xv[i] = F_xv[i].mul(Math.pow(-1, i / width));
-        }
         Complex[] F_uv = fuvHelper(F_xv, width, height);
 
         // scale processing
@@ -179,29 +177,36 @@ public class Assignment1 {
     private Complex[] fft(byte[] img, int width, int height){
         Complex[] f_xy = new Complex[img.length];
         // transfer byte img into complex img
-        for(int i = 0; i < img.length; i++){
-            f_xy[i] = new Complex((img[i] & 0xff) * Math.pow(-1, i), 0);
+        for(int x = 0; x < height; x++){
+            for(int y = 0; y < width; y++){
+                f_xy[x * width + y] = new Complex((img[x * width + y] & 0xff) * Math.pow(-1, x+y), 0);
+            }
         }
         // prepare F_xv by first fft recursion on y axis
         Complex[] F_xv = fxvHelper(f_xy, width, height);
         // start second recursion on x axis
-//        for(int i = 0; i < F_xv.length; i++){
-//            F_xv[i] = F_xv[i].mul(Math.pow(-1, i / width));
-//        }
         return fuvHelper(F_xv, width, height);
     }
 
 
 
     public void ifft(Complex[] img_ft, byte[] img, int width, int height){
-
+//        for(int u = 0; u < height; u++){
+//            for(int v = 0; v < width; v++){
+//                img_ft[u * width + v] = img_ft[u * width + v].mul(Math.pow(-1, u+v));
+//            }
+//        }
         Complex[] F_uy = fuyHelper(img_ft, width, height);
         Complex[] f_xy = fxyHelper(F_uy, width, height);
-        for(int i = 0; i < f_xy.length; i++){
-            f_xy[i] = f_xy[i].div(f_xy.length);
-            if(f_xy[i].getReal() < 0) f_xy[i].setReal(0.0);
-            img[i] = (byte)(f_xy[i].getReal());
+        for(int x = 0; x < height; x++){
+            for(int y = 0; y < width; y++){
+                f_xy[x * width + y] = f_xy[x * width + y].div(height * width);
+                f_xy[x * width + y] = f_xy[x * width + y].mul(Math.pow(-1, (x+y)));
+                if(f_xy[x * width + y].getReal() < 0) f_xy[x * width + y].setReal(0.0);
+                img[x * width + y] = (byte)(f_xy[x * width + y].getReal());
+            }
         }
+
     }
 	/**
 	  * Task 2
@@ -224,30 +229,9 @@ public class Assignment1 {
 
   public void filtering(byte[] img, int width, int height, double d0) {
       Complex[] F_uv = fft(img, width, height);
-      for(int u = 0; u < height/2; u++){
-          for(int v = 0; v < width/2; v++){
-              double D_uv = Math.sqrt(u * u + v * v);
-              double H_uv = 1.0 / (1.0 + (D_uv/d0) * (D_uv/d0) * (D_uv/d0) * (D_uv/d0));
-              F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv);
-          }
-      }
-      for(int u = height-1; u >= height/2; u--){
-          for(int v = width-1; v >= width/2; v--){
-              double D_uv = Math.sqrt(Math.pow(u-height,2) + Math.pow((v-width),2));
-              double H_uv = 1.0 / (1.0 + (D_uv/d0) * (D_uv/d0) * (D_uv/d0) * (D_uv/d0));
-              F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv);
-          }
-      }
-      for(int u = 0; u < height/2; u++){
-          for(int v = width-1; v>=width/2; v--){
-              double D_uv = Math.sqrt(Math.pow(u, 2) + Math.pow((v-width), 2));
-              double H_uv = 1.0 / (1.0 + (D_uv/d0) * (D_uv/d0) * (D_uv/d0) * (D_uv/d0));
-              F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv);
-          }
-      }
-      for(int u = height-1; u >= height/2; u--){
-          for(int v = 0; v<width/2; v++){
-              double D_uv = Math.sqrt(Math.pow(u-height, 2) + Math.pow(v, 2));
+      for(int u = 0; u < height; u++){
+          for(int v = 0; v < width; v++){
+              double D_uv = Math.sqrt(Math.pow(u - height/2, 2) + Math.pow(v - width/2, 2));
               double H_uv = 1.0 / (1.0 + (D_uv/d0) * (D_uv/d0) * (D_uv/d0) * (D_uv/d0));
               F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv);
           }
