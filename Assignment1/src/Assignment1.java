@@ -294,20 +294,24 @@ public class Assignment1 {
 	  * 2 Mark
 	  */
   public void filtering2(byte[] img, int width, int height) {
-      int n = 2;
+      int d0 = 5;
+      int n = 1;
       Complex[] F_uv = fft(img, width, height);
       int[] pair1 = {21, 21};
       int[] pair2 = {21, -21};
-      Complex[] H_uv = new Complex[F_uv.length];
+      double[] H_uv = new double[F_uv.length];
       for(int u = 0; u < height; u++){
           for(int v = 0; v < width; v++){
-              double D1_uv = Math.sqrt(Math.pow(u - height / 2 - pair1[0], 2) + Math.pow(v - width-pair1[1], 2));
-              double Dm1_uv = Math.sqrt(Math.pow(u - height/2 +pair1[0], 2) + Math.pow(v - width+pair1[1],2));
-              double D2_uv = Math.sqrt(Math.pow(u - height / 2 - pair2[0], 2) + Math.pow(v - width-pair2[1], 2));
-              double Dm2_uv = Math.sqrt(Math.pow(u - height/2 +pair2[0], 2) + Math.pow(v - width+pair2[1],2));
-              H_uv[u * width + v] =
+              double D1_uv = Math.sqrt(Math.pow(u - height/2 - pair1[0], 2) + Math.pow(v - width/2-pair1[1], 2));
+              double Dm1_uv = Math.sqrt(Math.pow(u - height/2 +pair1[0], 2) + Math.pow(v - width/2+pair1[1],2));
+              double D2_uv = Math.sqrt(Math.pow(u - height/2 - pair2[0], 2) + Math.pow(v - width/2-pair2[1], 2));
+              double Dm2_uv = Math.sqrt(Math.pow(u - height/2 +pair2[0], 2) + Math.pow(v - width/2+pair2[1],2));
+              H_uv[u * width + v] = (1.0/(1.0 + Math.pow(d0/D1_uv, 2 * n))) * (1.0/(1.0 + Math.pow(d0/Dm1_uv, 2 * n))) *
+                      (1.0/(1.0 + Math.pow(d0/D2_uv, 2 * n))) * (1.0/(1.0 + Math.pow(d0/Dm2_uv, 2 * n)));
+              F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv[u * width + v]);
           }
       }
+
       ifft(F_uv, img, width, height);
   }
 
