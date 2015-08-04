@@ -183,15 +183,13 @@ public class Assignment1 {
             img[i] = (byte)(c * F_uv[i].getNorm());
         }
         logTransformation(img);
-//        for(int i = 0; i < img.length; i++){
-//            if(img[i] >0){
-//                int x = i / width;
-//                int y = i % width;
-//                System.out.println("x:" + x + ", y:" + y + "\n");
-//            }
-////            System.out.println(img[i]);
-//        }
-        System.out.println("height:" + height + ", width:" + width);
+        for(int i = 0; i < img.length; i++){
+            if((img[i]&0xff) >0){
+                int x = i / width;
+                int y = i % width;
+                System.out.println("x:" + x + ", y:" + y + ", value:" + (img[i]&0xff));
+            }
+        }
         long endTime = System.nanoTime();
         System.out.print("run time: " + (endTime - startTime) / 1000000 + "ms");
 	}
@@ -267,10 +265,15 @@ public class Assignment1 {
      * transformed into "byte" type value, which is an 8-bit signed type. For example, the binary code of "255" is 11111111 unsigned.
      * If it is converted into byte, the value will be changed into -1 because the complement of -1 is 11111111. The same reason to other value.
      * Thus the original value will be changed into -1, -76, 0, 76, 1, 76, 0, -76. This series will be stored into the img list.
-     * Next, in the fourier transform method, these value will be and with 0xff. Thus, the value in one period will be
+     *
+     * Next, in the fourier transform method, these value will be "and" with 0xff. Thus, the value in one period will be
      * 255, 180, 0, 76, 1, 76, 0, 180. You can see the value is back to the original if they are positive. However, those negative value at
      * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. This is the reason why we will see six extra frequency components,
      * except for the original two.
+     *
+     * The reason why there are 8 frequency component is that, in a period, there are 8 times value change, such as 255 to 180 and 180 to 0 and so on.
+     * Thus, we can simply draw a conclusion that the variant has 8 times, corresponding to 8 different frequency components.
+     * Their frequency span is 0.125Hz.
      */
   public void changeImage(byte[] img, int width, int height) {
       for (int x = 0;x<height;x++)

@@ -47,8 +47,8 @@
       <file leaf-file-name="Assignment1.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Assignment1.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7435345">
-              <caret line="276" column="36" selection-start-line="276" selection-start-column="36" selection-end-line="276" selection-end-column="36" />
+            <state vertical-scroll-proportion="0.4849138">
+              <caret line="275" column="39" selection-start-line="275" selection-start-column="39" selection-end-line="275" selection-end-column="39" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -100,8 +100,8 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-14" />
-    <option name="y" value="26" />
+    <option name="x" value="37" />
+    <option name="y" value="23" />
     <option name="width" value="1280" />
     <option name="height" value="728" />
   </component>
@@ -462,15 +462,15 @@
       <workItem from="1438579221987" duration="23195000" />
       <workItem from="1438648545245" duration="3839000" />
       <workItem from="1438666902642" duration="12010000" />
-      <workItem from="1438687372915" duration="4814000" />
+      <workItem from="1438687372915" duration="5887000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="81799000" />
+    <option name="totallyTimeSpent" value="82872000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-14" y="26" width="1280" height="728" extended-state="0" />
+    <frame x="37" y="23" width="1280" height="728" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -628,8 +628,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Assignment1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7435345">
-          <caret line="276" column="36" selection-start-line="276" selection-start-column="36" selection-end-line="276" selection-end-column="36" />
+        <state vertical-scroll-proportion="0.4849138">
+          <caret line="275" column="39" selection-start-line="275" selection-start-column="39" selection-end-line="275" selection-end-column="39" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
