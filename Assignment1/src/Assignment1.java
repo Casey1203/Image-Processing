@@ -162,6 +162,17 @@ public class Assignment1 {
         // start second recursion on x axis
         Complex[] F_uv = fuvHelper(F_xv, width, height);
 
+//        Complex[] dft = ft(img, width, height);
+//        for(int i = 0; i < F_uv.length; i++){
+//            if ((F_uv[i].minus(dft[i]).getNorm()<0.001)){
+//                continue;
+//            }
+//            else {
+//                System.out.println("Hehe");
+//            }
+//        }
+
+
         // scale processing
         double max = Double.NEGATIVE_INFINITY;
         for(int i = 0; i < F_uv.length; i++) {
@@ -172,10 +183,39 @@ public class Assignment1 {
             img[i] = (byte)(c * F_uv[i].getNorm());
         }
         logTransformation(img);
-
+//        for(int i = 0; i < img.length; i++){
+//            if(img[i] >0){
+//                int x = i / width;
+//                int y = i % width;
+//                System.out.println("x:" + x + ", y:" + y + "\n");
+//            }
+////            System.out.println(img[i]);
+//        }
+        System.out.println("height:" + height + ", width:" + width);
         long endTime = System.nanoTime();
         System.out.print("run time: " + (endTime - startTime) / 1000000 + "ms");
 	}
+
+    //naive dft
+    private Complex[] ft(byte[] img, int width, int height) {
+        Complex[] F = new Complex[width*height];
+        for (int u = 0;u<height;u++) {
+            for (int v = 0;v<width;v++) {
+                F[u*width + v] = new Complex();
+                for (int x = 0;x<height;x++) {
+                    for (int y = 0;y<width;y++) {
+                        double a = (double)(img[x*width+y]&0xFF)*Math.pow(-1, x+y);
+                        double b = -2.0 * Math.PI * (u*x/(double)height + v*y/(double)width);
+                        Complex c = Complex.fromPolar(1, b).mul(a);
+                        F[u*width+v] = F[u*width+v].plus(c);
+                    }
+                }
+            }
+        }
+        return F;
+    }
+
+
 
     private Complex[] fft(byte[] img, int width, int height){
         Complex[] f_xy = new Complex[img.length];
@@ -218,10 +258,15 @@ public class Assignment1 {
 	  * No need to implement any code here.
 	  * 2 Marks
 	  */
+    /**
+     * In the image created by this function, along with the x direction, there are
+     */
   public void changeImage(byte[] img, int width, int height) {
-	for (int x = 0;x<height;x++)
-	  for (int y = 0;y<width;y++)
-		img[x*width+y] = (byte)(255.0 * Math.cos(x / 4.0 * Math.PI));
+      for (int x = 0;x<height;x++)
+        for (int y = 0;y<width;y++)
+            img[x*width+y] = (byte)(255.0 * Math.cos(x / 4.0 * Math.PI));
+
+//      System.out.println("h:" + height + ",w:" + width);
   }
 
 	/**
@@ -231,11 +276,12 @@ public class Assignment1 {
 	  */
 
   public void filtering(byte[] img, int width, int height, double d0) {
+      int n = 2;
       Complex[] F_uv = fft(img, width, height);
       for(int u = 0; u < height; u++){
           for(int v = 0; v < width; v++){
               double D_uv = Math.sqrt(Math.pow(u - height/2, 2) + Math.pow(v - width/2, 2));
-              double H_uv = 1.0 / (1.0 + (D_uv/d0) * (D_uv/d0) * (D_uv/d0) * (D_uv/d0));
+              double H_uv = 1.0 / (1.0 + Math.pow((D_uv/d0), 2 * n));
               F_uv[u * width + v] = F_uv[u * width + v].mul(H_uv);
           }
       }
@@ -248,26 +294,48 @@ public class Assignment1 {
 	  * 2 Mark
 	  */
   public void filtering2(byte[] img, int width, int height) {
-      byte[] new_img = img.clone();
-      int filterSize = 5;
-      int halfFilterSize = filterSize / 2;
-      for(int i = 0; i < new_img.length; i++){
-          int x = i / width;
-          int y = i % width;
-          ArrayList<Integer> effectiveAdj = new ArrayList<>();
-          for(int j = -halfFilterSize; j <= halfFilterSize; j++){
-              for(int k = -halfFilterSize; k <= halfFilterSize; k++){
-                  if((x + j) >= 0 && (x + j)< height && (y + k) >= 0 && (y + k) < width){
-                      effectiveAdj.add((new_img[(x + j) * width + (y + k)]) & 0xff);
-                  }
-              }
+      int n = 2;
+      Complex[] F_uv = fft(img, width, height);
+      int[] pair1 = {21, 21};
+      int[] pair2 = {21, -21};
+      Complex[] H_uv = new Complex[F_uv.length];
+      for(int u = 0; u < height; u++){
+          for(int v = 0; v < width; v++){
+              double D1_uv = Math.sqrt(Math.pow(u - height / 2 - pair1[0], 2) + Math.pow(v - width-pair1[1], 2));
+              double Dm1_uv = Math.sqrt(Math.pow(u - height/2 +pair1[0], 2) + Math.pow(v - width+pair1[1],2));
+              double D2_uv = Math.sqrt(Math.pow(u - height / 2 - pair2[0], 2) + Math.pow(v - width-pair2[1], 2));
+              double Dm2_uv = Math.sqrt(Math.pow(u - height/2 +pair2[0], 2) + Math.pow(v - width+pair2[1],2));
+              H_uv[u * width + v] =
           }
-          while (effectiveAdj.size() < Math.pow(filterSize, 2)){
-              effectiveAdj.add(0);
-          }
-          Collections.sort(effectiveAdj);
-          img[x * width + y] = (byte)(effectiveAdj.get(effectiveAdj.size()/2) & 0xff);
       }
+      ifft(F_uv, img, width, height);
   }
+
+
+
+    private void medianFilter(byte[] img, int width, int height) {
+        byte[] new_img = img.clone();
+        int filterSize = 5;
+        int halfFilterSize = filterSize / 2;
+        for (int i = 0; i < new_img.length; i++) {
+            int x = i / width;
+            int y = i % width;
+            ArrayList<Integer> effectiveAdj = new ArrayList<>();
+            for (int j = -halfFilterSize; j <= halfFilterSize; j++) {
+                for (int k = -halfFilterSize; k <= halfFilterSize; k++) {
+                    if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width) {
+                        effectiveAdj.add((new_img[(x + j) * width + (y + k)]) & 0xff);
+                    }
+                }
+            }
+            while (effectiveAdj.size() < Math.pow(filterSize, 2)) {
+                effectiveAdj.add(0);
+            }
+            Collections.sort(effectiveAdj);
+            img[x * width + y] = (byte) (effectiveAdj.get(effectiveAdj.size() / 2) & 0xff);
+        }
+    }
+
+
 
 }
