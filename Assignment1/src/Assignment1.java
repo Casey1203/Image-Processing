@@ -259,14 +259,25 @@ public class Assignment1 {
 	  * 2 Marks
 	  */
     /**
-     * In the image created by this function, along with the x direction, there are
+     * In the image created by this function, we only need to care about the x-axis because only x contributes to the frequency component.
+     * In the expression, the frequency of this signal is 0.125 with respect to x. Thus, if this signal is transformed into the frequency domain,
+     * the image should has two points at 0.125Hz and -0.125Hz. However, the transformed image has 8 points. The following is the reason:
+     * There are 8 points in a period. Take the first period as an example, which x is from 0 to 7. Then the value of y should be
+     * 255, 180, 0, -180, -255, -180, 0, 180 then to 255, which is the first point of the next period. However, these value need to be
+     * transformed into "byte" type value, which is an 8-bit signed type. For example, the binary code of "255" is 11111111 unsigned.
+     * If it is converted into byte, the value will be changed into -1 because the complement of -1 is 11111111. The same reason to other value.
+     * Thus the original value will be changed into -1, -76, 0, 76, 1, 76, 0, -76. This series will be stored into the img list.
+     * Next, in the fourier transform method, these value will be and with 0xff. Thus, the value in one period will be
+     * 255, 180, 0, 76, 1, 76, 0, 180. You can see the value is back to the original if they are positive. However, those negative value at
+     * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. This is the reason why we will see three extra frequency components,
+     * except for the original one.
      */
   public void changeImage(byte[] img, int width, int height) {
       for (int x = 0;x<height;x++)
-        for (int y = 0;y<width;y++)
+        for (int y = 0;y<width;y++){
             img[x*width+y] = (byte)(255.0 * Math.cos(x / 4.0 * Math.PI));
-
-//      System.out.println("h:" + height + ",w:" + width);
+//            System.out.println(img[x * width + y] & 0xff);
+        }
   }
 
 	/**
