@@ -269,8 +269,8 @@ public class Assignment1 {
      * Thus the original value will be changed into -1, -76, 0, 76, 1, 76, 0, -76. This series will be stored into the img list.
      * Next, in the fourier transform method, these value will be and with 0xff. Thus, the value in one period will be
      * 255, 180, 0, 76, 1, 76, 0, 180. You can see the value is back to the original if they are positive. However, those negative value at
-     * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. This is the reason why we will see three extra frequency components,
-     * except for the original one.
+     * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. This is the reason why we will see six extra frequency components,
+     * except for the original two.
      */
   public void changeImage(byte[] img, int width, int height) {
       for (int x = 0;x<height;x++)

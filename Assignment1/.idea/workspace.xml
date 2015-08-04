@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="846ea5a0-e644-4259-b915-7ebf7c3093f9" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Assignment1/Assignment1.class" afterPath="$PROJECT_DIR$/out/production/Assignment1/Assignment1.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Assignment1.java" afterPath="$PROJECT_DIR$/src/Assignment1.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Assignment1.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -49,7 +47,7 @@
       <file leaf-file-name="Assignment1.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Assignment1.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.61206895">
+            <state vertical-scroll-proportion="0.7435345">
               <caret line="276" column="36" selection-start-line="276" selection-start-column="36" selection-end-line="276" selection-end-column="36" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -464,12 +462,12 @@
       <workItem from="1438579221987" duration="23195000" />
       <workItem from="1438648545245" duration="3839000" />
       <workItem from="1438666902642" duration="12010000" />
-      <workItem from="1438687372915" duration="4272000" />
+      <workItem from="1438687372915" duration="4814000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="81257000" />
+    <option name="totallyTimeSpent" value="81799000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-14" y="26" width="1280" height="728" extended-state="0" />
@@ -630,7 +628,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Assignment1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.61206895">
+        <state vertical-scroll-proportion="0.7435345">
           <caret line="276" column="36" selection-start-line="276" selection-start-column="36" selection-end-line="276" selection-end-column="36" />
           <folding>
             <element signature="imports" expanded="true" />
