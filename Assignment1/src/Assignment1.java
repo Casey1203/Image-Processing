@@ -1,3 +1,6 @@
+/**
+ * filled in by @Casey
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -17,9 +20,15 @@ public class Assignment1 {
     }
 
 
-
-
-    public Complex[] fxvHelper(Complex[] f_xy, int width, int height){
+    /**
+     * Transform on one dimension
+     * @param f_xy original image, but it is complexed
+     * @param width
+     * @param height
+     * @param forward an double value, -1.0 means doing FFT, 1.0 means doing IFFT. It will be used in calculating W
+     * @return F_xv (transform in one dimension)
+     */
+    public Complex[] fxvHelper(Complex[] f_xy, int width, int height, double forward){
         if(width <= 1){
             return f_xy;
         }
@@ -36,49 +45,29 @@ public class Assignment1 {
             }
         }
         //divide
-        Complex[] F_xv_even = fxvHelper(f_xy_even, K, height);
-        Complex[] F_xv_odd = fxvHelper(f_xy_odd, K, height);
+        Complex[] F_xv_even = fxvHelper(f_xy_even, K, height, forward);
+        Complex[] F_xv_odd = fxvHelper(f_xy_odd, K, height, forward);
         //conquer
         for(int x = 0; x < height; x++){
             for(int v = 0; v < K; v++){
                 Complex F_xv_even_tmp = F_xv_even[x * K + v];
-                Complex F_xv_odd_tmp_mul_by_w = F_xv_odd[x * K + v].mul(Complex.fromPolar(1, -1.0 * Math.PI * v/(double)K));
+                Complex F_xv_odd_tmp_mul_by_w = F_xv_odd[x * K + v].mul(Complex.fromPolar(1, forward * Math.PI * v/(double)K));
                 F_xv[x * width + v] = F_xv_even_tmp.plus(F_xv_odd_tmp_mul_by_w);
                 F_xv[x * width + v + K] = F_xv_even_tmp.minus(F_xv_odd_tmp_mul_by_w);
             }
         }
         return F_xv;
     }
-    public Complex[] fuyHelper(Complex[] F_uv, int width, int height){
-        if(width <= 1){
-            return F_uv;
-        }
-        int K = width / 2;
-        Complex[] F_uv_even = new Complex[K * height];
-        Complex[] F_uv_odd = new Complex[K * height];
-        Complex[] F_uy = new Complex[F_uv.length];
-        for(int u = 0; u < height; u++){
-            for(int v = 0; v < K; v++){
-                F_uv_even[u * K + v] = F_uv[u * width + 2 * v];
-                F_uv_odd[u * K + v] = F_uv[u * width + 2 * v + 1];
-            }
-        }
-        //divide
-        Complex[] F_uy_even = fuyHelper(F_uv_even, K, height);
-        Complex[] F_uy_odd = fuyHelper(F_uv_odd, K, height);
-        //conquer
-        for(int u = 0; u < height; u++){
-            for(int y = 0; y < K; y++){
-                Complex F_uy_even_tmp = F_uy_even[u * K + y];
-                Complex F_uy_odd_tmp_my_by_w = F_uy_odd[u * K + y].mul(Complex.fromPolar(1, 1.0 * Math.PI * y/(double)K));
-                F_uy[u * width + y] = F_uy_even_tmp.plus(F_uy_odd_tmp_my_by_w);
-                F_uy[u * width + y + K] = F_uy_even_tmp.minus(F_uy_odd_tmp_my_by_w);
-            }
-        }
-        return F_uy;
-    }
 
-    public Complex[] fuvHelper(Complex[] F_xv, int width, int height){
+    /**
+     * Transform on the other dimension
+     * @param F_xv An image that has be transform into frequency domain in one dimension
+     * @param width
+     * @param height
+     * @param forward an double value, -1.0 means doing FFT, 1.0 means doing IFFT. It will be used in calculating W
+     * @return Frequency domain of the original img.
+     */
+    public Complex[] fuvHelper(Complex[] F_xv, int width, int height, double forward){
 
         if(height <= 1){
             return F_xv;
@@ -96,13 +85,13 @@ public class Assignment1 {
             }
         }
         //divide
-        Complex[] F_uv_even = fuvHelper(F_xv_even, width, F_xv_even.length / width);
-        Complex[] F_uv_odd = fuvHelper(F_xv_odd, width, F_xv_odd.length / width);
+        Complex[] F_uv_even = fuvHelper(F_xv_even, width, F_xv_even.length / width, forward);
+        Complex[] F_uv_odd = fuvHelper(F_xv_odd, width, F_xv_odd.length / width, forward);
         //conquer
         for(int u = 0; u < K; u++){
             for(int v = 0; v < width; v++){
                 Complex F_uv_even_tmp = F_uv_even[u * width + v];
-                Complex F_uv_odd_tmp_mul_by_w = F_uv_odd[u * width + v].mul(Complex.fromPolar(1, -1.0 * Math.PI * u / (double) K));
+                Complex F_uv_odd_tmp_mul_by_w = F_uv_odd[u * width + v].mul(Complex.fromPolar(1, forward * Math.PI * u / (double) K));
                 F_uv[u * width + v] = F_uv_even_tmp.plus(F_uv_odd_tmp_mul_by_w);
                 F_uv[(u+K) * width + v] = F_uv_even_tmp.minus(F_uv_odd_tmp_mul_by_w);
             }
@@ -110,35 +99,6 @@ public class Assignment1 {
         return F_uv;
     }
 
-    public Complex[] fxyHelper(Complex[] F_uy, int width, int height){
-        if(height <= 1){
-            return F_uy;
-        }
-        int K = height / 2;
-        Complex[] F_uy_even = new Complex[K * width];
-        Complex[] F_uy_odd = new Complex[K * width];
-        Complex[] f_xy = new Complex[F_uy.length];
-        // calculate F(u)_even and F(u)_odd
-        for(int u = 0; u < K; u++){
-            for(int y = 0; y < width; y++){
-                F_uy_even[u * width + y] = F_uy[2 * u * width + y];
-                F_uy_odd[u * width + y] = F_uy[(2 * u + 1) * width + y];
-            }
-        }
-        //divide
-        Complex[] f_xy_even = fxyHelper(F_uy_even, width, K);
-        Complex[] f_xy_odd = fxyHelper(F_uy_odd, width, K);
-        //conquer
-        for(int x = 0; x < K; x++){
-            for(int y = 0; y < width; y++){
-                Complex f_xy_even_tmp = f_xy_even[x * width + y];
-                Complex f_xy_odd_tmp_mul_by_w = f_xy_odd[x * width + y].mul(Complex.fromPolar(1, 1.0 * Math.PI * x/(double)K));
-                f_xy[x * width + y] = f_xy_even_tmp.plus(f_xy_odd_tmp_mul_by_w);
-                f_xy[(x+K) * width + y] = f_xy_even_tmp.minus(f_xy_odd_tmp_mul_by_w);
-            }
-        }
-        return f_xy;
-    }
 
     /**
 	* Task 1
@@ -158,10 +118,10 @@ public class Assignment1 {
             }
         }
         // prepare F_xv by first fft recursion on y axis
-        Complex[] F_xv = fxvHelper(f_xy, width, height);
+        Complex[] F_xv = fxvHelper(f_xy, width, height, -1.0);
         // start second recursion on x axis
-        Complex[] F_uv = fuvHelper(F_xv, width, height);
-
+        Complex[] F_uv = fuvHelper(F_xv, width, height, -1.0);
+        // test if DFT and FFT are same
 //        Complex[] dft = ft(img, width, height);
 //        for(int i = 0; i < F_uv.length; i++){
 //            if ((F_uv[i].minus(dft[i]).getNorm()<0.001)){
@@ -171,8 +131,6 @@ public class Assignment1 {
 //                System.out.println("Hehe");
 //            }
 //        }
-
-
         // scale processing
         double max = Double.NEGATIVE_INFINITY;
         for(int i = 0; i < F_uv.length; i++) {
@@ -183,13 +141,13 @@ public class Assignment1 {
             img[i] = (byte)(c * F_uv[i].getNorm());
         }
         logTransformation(img);
-        for(int i = 0; i < img.length; i++){
-            if((img[i]&0xff) >0){
-                int x = i / width;
-                int y = i % width;
-                System.out.println("x:" + x + ", y:" + y + ", value:" + (img[i]&0xff));
-            }
-        }
+//        for(int i = 0; i < img.length; i++){
+//            if((img[i]&0xff) >0){
+//                int x = i / width;
+//                int y = i % width;
+//                System.out.println("x:" + x + ", y:" + y + ", value:" + (img[i]&0xff));
+//            }
+//        }
         long endTime = System.nanoTime();
         System.out.print("run time: " + (endTime - startTime) / 1000000 + "ms");
 	}
@@ -214,7 +172,7 @@ public class Assignment1 {
     }
 
 
-
+    //for comparison
     private Complex[] fft(byte[] img, int width, int height){
         Complex[] f_xy = new Complex[img.length];
         // transfer byte img into complex img
@@ -224,25 +182,20 @@ public class Assignment1 {
             }
         }
         // prepare F_xv by first fft recursion on y axis
-        Complex[] F_xv = fxvHelper(f_xy, width, height);
+        Complex[] F_xv = fxvHelper(f_xy, width, height, -1.0);
         // start second recursion on x axis
-        return fuvHelper(F_xv, width, height);
+        return fuvHelper(F_xv, width, height, -1.0);
     }
 
 
 
     public void ifft(Complex[] img_ft, byte[] img, int width, int height){
-//        for(int u = 0; u < height; u++){
-//            for(int v = 0; v < width; v++){
-//                img_ft[u * width + v] = img_ft[u * width + v].mul(Math.pow(-1, u+v));
-//            }
-//        }
-        Complex[] F_uy = fuyHelper(img_ft, width, height);
-        Complex[] f_xy = fxyHelper(F_uy, width, height);
+        Complex[] F_uy = fxvHelper(img_ft, width, height, 1.0);
+        Complex[] f_xy = fuvHelper(F_uy, width, height, 1.0);
         for(int x = 0; x < height; x++){
             for(int y = 0; y < width; y++){
                 f_xy[x * width + y] = f_xy[x * width + y].div(height * width);
-                f_xy[x * width + y] = f_xy[x * width + y].mul(Math.pow(-1, (x+y)));
+                f_xy[x * width + y] = f_xy[x * width + y].mul(Math.pow(-1, (x+y)));//center
                 if(f_xy[x * width + y].getReal() < 0) f_xy[x * width + y].setReal(0.0);
                 img[x * width + y] = (byte)(f_xy[x * width + y].getReal());
             }
@@ -257,29 +210,29 @@ public class Assignment1 {
 	  * 2 Marks
 	  */
     /**
-     * In the image created by this function, we only need to care about the x-axis because only x contributes to the frequency component.
+     * In the image created by this function, we only need to care about the x-axis because only x has variance that contributes the frequency component.
      * In the expression, the frequency of this signal is 0.125 with respect to x. Thus, if this signal is transformed into the frequency domain,
      * the image should has two points at 0.125Hz and -0.125Hz. However, the transformed image has 8 points. The following is the reason:
-     * There are 8 points in a period. Take the first period as an example, which x is from 0 to 7. Then the value of y should be
-     * 255, 180, 0, -180, -255, -180, 0, 180 then to 255, which is the first point of the next period. However, these value need to be
+     *
+     * There are 8 points in a period. Take the first period as an example, which x is from 0 to 7. Then the value of pixel grey level should be
+     * 255, 180, 0, -180, -255, -180, 0, 180 then to 255, which is the first point of the next period. However, these values need to be
      * transformed into "byte" type value, which is an 8-bit signed type. For example, the binary code of "255" is 11111111 unsigned.
      * If it is converted into byte, the value will be changed into -1 because the complement of -1 is 11111111. The same reason to other value.
      * Thus the original value will be changed into -1, -76, 0, 76, 1, 76, 0, -76. This series will be stored into the img list.
      *
-     * Next, in the fourier transform method, these value will be "and" with 0xff. Thus, the value in one period will be
+     * Next, in the fourier transform method, these value will be "and" with 0xff. Thus, the value in one period will be changed into
      * 255, 180, 0, 76, 1, 76, 0, 180. You can see the value is back to the original if they are positive. However, those negative value at
-     * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. This is the reason why we will see six extra frequency components,
-     * except for the original two.
+     * the very beginning such as -180 or -255 will be changed into 76 and 1 relatively. It is not a cosine wave anymore. This is the reason why we
+     * will see six extra frequency components, except for the original two.
      *
-     * The reason why there are 8 frequency component is that, in a period, there are 8 times value change, such as 255 to 180 and 180 to 0 and so on.
-     * Thus, we can simply draw a conclusion that the variant has 8 times, corresponding to 8 different frequency components.
-     * Their frequency span is 0.125Hz.
+     * The reason why there are 8 frequency component is that, in a period, there are 8 points in a period. It needs 8 different frequency component to
+     * express it. Their frequency span is 0.125Hz.
      */
   public void changeImage(byte[] img, int width, int height) {
       for (int x = 0;x<height;x++)
         for (int y = 0;y<width;y++){
-            img[x*width+y] = (byte)(255.0 * Math.cos(x / 4.0 * Math.PI));
-//            System.out.println(img[x * width + y] & 0xff);
+            img[x*width+y] = (byte)(255.0 * Math.cos(x / 8.0 * Math.PI));
+            System.out.println(img[x * width + y] & 0xff);
         }
   }
 
@@ -306,9 +259,10 @@ public class Assignment1 {
 	  * Task 4
 	  * Apply a suitable filter to the car image to attenuate the "impulse-like" bursts in the image.
 	  * 2 Mark
+      * Using notch Butterworth high pass filter
 	  */
   public void filtering2(byte[] img, int width, int height) {
-      int d0 = 5;
+      int d0 = 8;
       int n = 1;
       Complex[] F_uv = fft(img, width, height);
       int[] pair1 = {21, 21};
@@ -328,9 +282,7 @@ public class Assignment1 {
 
       ifft(F_uv, img, width, height);
   }
-
-
-
+    //not used in this assignment
     private void medianFilter(byte[] img, int width, int height) {
         byte[] new_img = img.clone();
         int filterSize = 5;
@@ -353,7 +305,4 @@ public class Assignment1 {
             img[x * width + y] = (byte) (effectiveAdj.get(effectiveAdj.size() / 2) & 0xff);
         }
     }
-
-
-
 }
