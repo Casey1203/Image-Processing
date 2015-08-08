@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
   * Assignment 2
   * You may only edit and submit this file to moodle before the deadline. 
@@ -19,14 +22,12 @@ public class Assignment2 {
 		}
 		int filterSize = 5;
 		int halfFilterSize = filterSize / 2;
-		double[] filter = new double[filterSize * filterSize];
+		double[] filter = new double[filterSize];
 		double sumOfFilter = 0.0;
+		//1D gaussian filter
 		for(int x = 0; x < filterSize; x++){
-			for(int y = 0; y < filterSize; y++){
-				filter[x * filterSize + y] = 1 / (2 * Math.PI * sigma * sigma)
-						* Math.exp(-(Math.pow(x - halfFilterSize, 2) + Math.pow(y - halfFilterSize, 2))/(2 * sigma * sigma));
-				sumOfFilter += filter[x * filterSize + y];
-			}
+			filter[x] = 1/(Math.sqrt(2.0 * Math.PI) * sigma) * Math.exp(-Math.pow((x - halfFilterSize)*1.0/sigma, 2)/2.0);
+			sumOfFilter += filter[x];
 		}
 		//scaling
 		for(int i = 0; i < filter.length; i++){
@@ -37,21 +38,57 @@ public class Assignment2 {
 			f[i] = (byte)new_f[i];
 		}
 	}
-
+	private void gaussianSmooth(double[] f, int width, int height, double sigma){
+		int filterSize = 5;
+		int halfFilterSize = filterSize / 2;
+		double[] filter = new double[filterSize];
+		double sumOfFilter = 0.0;
+		//1D gaussian filter
+		for(int x = 0; x < filterSize; x++){
+			filter[x] = 1/(Math.sqrt(2.0 * Math.PI) * sigma) * Math.exp(-Math.pow((x - halfFilterSize)*1.0/sigma, 2)/2.0);
+			sumOfFilter += filter[x];
+		}
+		//scaling
+		for(int i = 0; i < filter.length; i++){
+			filter[i] = filter[i] / sumOfFilter;
+		}
+		convolve(f, filter, filterSize, width, height);
+	}
 	private void convolve(double[] img, double[] filter, int filterSize, int width, int height){
 		double[] new_img = img.clone();
 		int halfFilterSize = filterSize / 2;
 		for(int x = halfFilterSize; x < height-halfFilterSize; x++){
 			for(int y = halfFilterSize; y < width-halfFilterSize; y++){
 				img[x * width + y] = 0;
-				for(int i = -halfFilterSize; i <= halfFilterSize; i++){
-					for(int j = -halfFilterSize; j <= halfFilterSize; j++){
-						img[x * width + y] += new_img[(x + i) * width + y + j] * filter[filter.length - 1 - ((i + halfFilterSize) * filterSize + j + halfFilterSize)];
+				for(int a = -halfFilterSize; a <= halfFilterSize; a++){
+					double innerSum = 0;
+					for(int b = -halfFilterSize; b <= halfFilterSize; b++){
+						innerSum += new_img[(x - a) * width + y - b] * filter[b + halfFilterSize];
 					}
+					img[x * width + y] += filter[a + halfFilterSize] * innerSum;
 				}
 			}
 		}
 	}
+	public void boxSmoothFilter(double[] img, int w, int h, int filterSize) {
+		double[] new_img = img.clone();
+		int halfFilterSize = filterSize / 2;
+		for(int i = 0; i < new_img.length; i++){//traverse the element in image
+			int x = i / w;
+			int y = i % w;
+			double sum = 0;
+			for(int j = -halfFilterSize; j <= halfFilterSize; j++){
+				for(int k = -halfFilterSize; k <= halfFilterSize; k++){
+					if((x + j) >= 0 && (x + j)< h && (y + k) >= 0 && (y + k) < w){
+						sum += new_img[(x + j) * w + (y + k)];
+					}
+				}
+			}
+			img[i] = sum / filterSize / filterSize;
+		}
+	}
+
+
 	/**
 	 * Task 2: 
 	 * Implement the Harris Corner Detection Algorithm. Hints:
@@ -62,15 +99,78 @@ public class Assignment2 {
 	 * 5 Marks
 	 */
 	public ArrayList<double[]> detectCorners(final byte[] f, int width, int height, double sigma, double threshold) {
+		double[] fx2 = new double[f.length];
+		double[] fy2 = new double[f.length];
+		double[] fxy = new double[f.length];
+		double[] R = new double[f.length];
+
+		for(int x = 1; x < height-1; x++){
+			for(int y = 1; y < width-1; y++){
+				int fx = ((int)f[(x+1) * width + y]&0xff) - ((int)f[(x-1) * width + y] & 0xff);
+				int fy = ((int)f[x * width + y + 1]&0xff) - ((int)f[x * width + y - 1] & 0xff);
+				fx2[x * width + y] = fx * fx;
+				fy2[x * width + y] = fy * fy;
+				fxy[x * width + y] = fx * fy;
+			}
+		}
+		gaussianSmooth(fx2, width, height, sigma);
+		gaussianSmooth(fy2, width, height, sigma);
+		gaussianSmooth(fxy, width, height, sigma);
+
+		// calculate R
+		for(int i = 0; i < R.length; i ++){
+			R[i] = (fx2[i] * fy2[i] - fxy[i] * fxy[i]) - 0.04 * ((fx2[i] + fy2[i]) * (fx2[i] + fy2[i]));
+		}
+
 		ArrayList<double[]> cornersOut = new ArrayList<double[]>();
-		double[] aTestCorner = new double[2];
-		double x = 10.0;
-		double y = 100.0;
-		aTestCorner[0] = x;
-		aTestCorner[1] = y;
+
+		int maskSize = 3;
+		int halfMaskSize = maskSize/2;
+		for(int x = halfMaskSize; x < height-halfMaskSize; x++){
+			for(int y = halfMaskSize; y < width-halfMaskSize; y++){
+				if(isLocalMaxima(R, x, y, width, height, maskSize) && R[x * width + y] > threshold){
+					double a = (R[(x+1) * width+y] + R[(x-1) * width+y] - 2 * R[x * width + y])/2.0;
+					double b = (R[x * width + y + 1] + R[x * width + y - 1] - 2 * R[x * width + y])/2.0;
+					double c = (R[(x+1) * width + y + 1] + R[(x-1) * width + y - 1])/2.0 - R[x * width + y] - a - b;
+					double d = R[(x+1) * width + y] - R[x * width + y] - a * (2 * x + 1) - c * y;
+					double e = R[x * width + y + 1] - R[x * width + y - 1] - b * (2 * y + 1) - c * x;
+
+					double x_appr = (c * e - 2 * b * d) / (4 * a * b - c * c);
+					double y_appr = (c * d - 2 * a * e) / (4 * a * b - c * c);
+					double[] sub_acc = new double[2];
+					sub_acc[0] = y_appr;
+					sub_acc[1] = x_appr;
+					cornersOut.add(sub_acc);
+				}
+			}
+		}
+		System.out.println(cornersOut.size());
 		return cornersOut;
 	}
-
+	private ArrayList<Double> getNeighborNbyN(double[] img, int x, int y, int width, int height, int filterSize){
+		int halfFilterSize = (filterSize-1)/2;
+		ArrayList<Double> effAdjIntensity = new ArrayList<Double>();
+		for(int i = -halfFilterSize; i <= halfFilterSize; i++){
+			for(int j = -halfFilterSize; j <= halfFilterSize; j++){
+				int x_neighbor = x+i;
+				int y_neighbor = y+j;
+				if(i != 0 && j != 0){//remove itself
+					effAdjIntensity.add(img[x_neighbor * width + y_neighbor]);
+				}
+			}
+		}
+		return effAdjIntensity;
+	}
+	private boolean isLocalMaxima(double[] img, int x, int y, int width, int height, int maskSize){
+		ArrayList<Double> effAdjIntensity = getNeighborNbyN(img, x, y, width, height, maskSize);
+		double max = Collections.max(effAdjIntensity);
+		if(img[x * width + y] > max){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
 	/**
 	  * This method is called when the Task 3 is clicked in the UI.
 	  * This method together with various helper methods will generate many 2D to 3D correspondences. 
