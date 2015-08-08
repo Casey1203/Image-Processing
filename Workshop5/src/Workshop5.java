@@ -12,6 +12,9 @@ public class Workshop5 {
 		Matrix Q = new Matrix(3,3);
 		Matrix RPrime = new Matrix(3,3);
 		P.subMat(0, 2, 0, 2).inverse().QR(Q, RPrime);
+		K.set(RPrime.inverse());
+		R.set(Q.transpose());
+		T.set(K.inverse().mul(P.subMat(0, 2, 3, 3)));
 
 	}
 
