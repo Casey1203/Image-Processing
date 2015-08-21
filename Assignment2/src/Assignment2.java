@@ -65,16 +65,37 @@ public class Assignment2 {
 	private void convolve(double[] img, double[] filter, int filterSize, int width, int height){
 		double[] new_img = img.clone();
 		int halfFilterSize = filterSize / 2;
-		for(int x = halfFilterSize; x < height-halfFilterSize; x++){
-			for(int y = halfFilterSize; y < width-halfFilterSize; y++){
-				img[x * width + y] = 0;
+		for(int x = 0; x < height; x++){
+			for(int y = 0; y < width; y++){
+				img[x * width + y] = 0.0;
+				double gaussianSum = 0.0;
+				double gaussianUsefulSum = 0.0;
+				double Sum = 0.0;
 				for(int a = -halfFilterSize; a <= halfFilterSize; a++){
-					double innerSum = 0;
-					for(int b = -halfFilterSize; b <= halfFilterSize; b++){
-						innerSum += new_img[(x - a) * width + y - b] * filter[b + halfFilterSize];
+					gaussianSum += filter[a + halfFilterSize];
+					if((y-a < width && y-a >=0)){
+						gaussianUsefulSum += filter[a + halfFilterSize];
+						Sum += new_img[x * width + y - a] * filter[a + halfFilterSize];
 					}
-					img[x * width + y] += filter[a + halfFilterSize] * innerSum;
 				}
+				img[x * width + y] = Sum * (gaussianSum / gaussianUsefulSum);
+			}
+		}
+		new_img = img.clone();
+		for(int x = 0; x < height; x++){
+			for(int y = 0; y < width; y++){
+				img[x * width + y] = 0.0;
+				double gaussianSum = 0.0;
+				double gaussianUsefulSum = 0.0;
+				double Sum = 0.0;
+				for(int a = -halfFilterSize; a <= halfFilterSize; a++){
+					gaussianSum += filter[a + halfFilterSize];
+					if((x-a < height && x-a >=0)){
+						gaussianUsefulSum += filter[a + halfFilterSize];
+						Sum += new_img[(x-a) * width + y] * filter[a + halfFilterSize];
+					}
+				}
+				img[x * width + y] = Sum * (gaussianSum / gaussianUsefulSum);
 			}
 		}
 	}
