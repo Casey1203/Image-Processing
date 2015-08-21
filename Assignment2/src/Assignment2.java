@@ -20,7 +20,7 @@ public class Assignment2 {
 		for(int i = 0; i < f.length; i++){
 			new_f[i] = f[i] & 0xff;
 		}
-		int filterSize = 5;
+		int filterSize = 6 * (int)sigma + 1;//has relation with sigma
 		int halfFilterSize = filterSize / 2;
 		double[] filter = new double[filterSize];
 		double sumOfFilter = 0.0;
@@ -38,8 +38,16 @@ public class Assignment2 {
 			f[i] = (byte)new_f[i];
 		}
 	}
-	private void gaussianSmooth(double[] f, int width, int height, double sigma){
-		int filterSize = 5;
+
+	/**
+	 *
+	 * @param f double type
+	 * @param width
+	 * @param height
+	 * @param sigma
+	 */
+	private void gaussianSmoothdoubleInput(double[] f, int width, int height, double sigma){
+		int filterSize = (int)sigma * 6 + 1;
 		int halfFilterSize = filterSize / 2;
 		double[] filter = new double[filterSize];
 		double sumOfFilter = 0.0;
@@ -113,9 +121,9 @@ public class Assignment2 {
 				fxy[x * width + y] = fx * fy;
 			}
 		}
-		gaussianSmooth(fx2, width, height, sigma);
-		gaussianSmooth(fy2, width, height, sigma);
-		gaussianSmooth(fxy, width, height, sigma);
+		gaussianSmoothdoubleInput(fx2, width, height, sigma);
+		gaussianSmoothdoubleInput(fy2, width, height, sigma);
+		gaussianSmoothdoubleInput(fxy, width, height, sigma);
 
 		// calculate R
 		for(int i = 0; i < R.length; i ++){
@@ -129,6 +137,7 @@ public class Assignment2 {
 		for(int x = halfMaskSize; x < height-halfMaskSize; x++){
 			for(int y = halfMaskSize; y < width-halfMaskSize; y++){
 				if(isLocalMaxima(R, x, y, width, height, maskSize) && R[x * width + y] > threshold){
+					//parameter defined by myself
 					double a = (R[(x+1) * width+y] + R[(x-1) * width+y] - 2 * R[x * width + y])/2.0;
 					double b = (R[x * width + y + 1] + R[x * width + y - 1] - 2 * R[x * width + y])/2.0;
 					double c = (R[(x+1) * width + y + 1] + R[(x-1) * width + y - 1])/2.0 - R[x * width + y] - a - b;
@@ -144,7 +153,7 @@ public class Assignment2 {
 				}
 			}
 		}
-		System.out.println(cornersOut.size());
+
 		return cornersOut;
 	}
 	private ArrayList<Double> getNeighborNbyN(double[] img, int x, int y, int width, int height, int filterSize){
@@ -327,6 +336,40 @@ public class Assignment2 {
       * 5 Marks
       */
 	private Matrix performCalibration(ArrayList<double[]> points2d, ArrayList<double[]> points3d) {
-		return new Matrix(3, 4);
+		double[] matrixElement = new double[points2d.size() * 2 * 12];
+		int matrixwidth = 12;
+		for(int i = 0; i < points2d.size(); i++){
+			double[] cur3DPoint = points3d.get(i);
+			double[] cur2DPoint = points2d.get(i);
+			double[] row1 = {cur3DPoint[0], cur3DPoint[1], cur3DPoint[2], 1, 0, 0, 0, 0,
+					-cur2DPoint[0] * cur3DPoint[0], -cur2DPoint[0] * cur3DPoint[1], -cur2DPoint[0] * cur3DPoint[2], -cur2DPoint[0]};
+			double[] row2 = {0, 0, 0, 0, cur3DPoint[0], cur3DPoint[1], cur3DPoint[2], 1,
+					-cur2DPoint[1] * cur3DPoint[0], -cur2DPoint[1] * cur3DPoint[1], -cur2DPoint[1] * cur3DPoint[2], -cur2DPoint[1]};
+			for(int j = 0; j < row1.length; j++){
+				matrixElement[2 * i * matrixwidth + j] = row1[j];
+				matrixElement[(2 * i + 1) * matrixwidth + j] = row2[j];
+			}
+		}
+		Matrix A = new Matrix(points2d.size() * 2, 12, matrixElement);
+//		System.out.println(A.toString());
+		int rows = A.rows;
+		int cols = A.cols;
+
+		Matrix U = new Matrix(rows, rows);
+		Matrix V = new Matrix(cols, cols);
+		Matrix D = new Matrix(rows, cols);
+		A.SVD2(U, D, V);
+		Matrix p_col = V.getCol(cols-1);
+		double [] p_ele = new double[cols];
+		for(int i = 0; i < cols; i++){
+			p_ele[i] = p_col.get(i);
+			System.out.println(p_ele[i]);
+		}
+		//scale p
+		for(int i = 0; i < p_ele.length; i++){
+			p_ele[i] = p_ele[i] / p_ele[p_ele.length-1];
+		}
+		Matrix P = new Matrix(3, 4, p_ele);
+		return P;
 	}
 }
