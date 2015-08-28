@@ -20,7 +20,7 @@ public class Assignment2 {
 		for(int i = 0; i < f.length; i++){
 			new_f[i] = f[i] & 0xff;
 		}
-		int filterSize = 6 * (int)sigma + 1;//has relation with sigma
+		int filterSize = (int)(3 * sigma) * 2 + 1;//has relation with sigma
 		int halfFilterSize = filterSize / 2;
 		double[] filter = new double[filterSize];
 		double sumOfFilter = 0.0;
@@ -47,7 +47,7 @@ public class Assignment2 {
 	 * @param sigma
 	 */
 	private void gaussianSmoothdoubleInput(double[] f, int width, int height, double sigma){
-		int filterSize = (int)sigma * 6 + 1;
+		int filterSize = (int)(3 * sigma) * 2 + 1;
 		int halfFilterSize = filterSize / 2;
 		double[] filter = new double[filterSize];
 		double sumOfFilter = 0.0;
@@ -99,23 +99,6 @@ public class Assignment2 {
 			}
 		}
 	}
-	public void boxSmoothFilter(double[] img, int w, int h, int filterSize) {
-		double[] new_img = img.clone();
-		int halfFilterSize = filterSize / 2;
-		for(int i = 0; i < new_img.length; i++){//traverse the element in image
-			int x = i / w;
-			int y = i % w;
-			double sum = 0;
-			for(int j = -halfFilterSize; j <= halfFilterSize; j++){
-				for(int k = -halfFilterSize; k <= halfFilterSize; k++){
-					if((x + j) >= 0 && (x + j)< h && (y + k) >= 0 && (y + k) < w){
-						sum += new_img[(x + j) * w + (y + k)];
-					}
-				}
-			}
-			img[i] = sum / filterSize / filterSize;
-		}
-	}
 
 
 	/**
@@ -157,13 +140,13 @@ public class Assignment2 {
 		int halfMaskSize = maskSize/2;
 		for(int x = halfMaskSize; x < height-halfMaskSize; x++){
 			for(int y = halfMaskSize; y < width-halfMaskSize; y++){
-				if(isLocalMaxima(R, x, y, width, height, maskSize) && R[x * width + y] > threshold){
-					//parameter defined by myself
+				if( R[x * width + y] > threshold && isLocalMaxima(R, x, y, width, height, maskSize)){
+					//parameter defined by myself, u can find the definition here http://blog.leanote.com/post/casey/Harris-Conner-Detection
 					double a = (R[(x+1) * width+y] + R[(x-1) * width+y] - 2 * R[x * width + y])/2.0;
 					double b = (R[x * width + y + 1] + R[x * width + y - 1] - 2 * R[x * width + y])/2.0;
 					double c = (R[(x+1) * width + y + 1] + R[(x-1) * width + y - 1])/2.0 - R[x * width + y] - a - b;
 					double d = R[(x+1) * width + y] - R[x * width + y] - a * (2 * x + 1) - c * y;
-					double e = R[x * width + y + 1] - R[x * width + y - 1] - b * (2 * y + 1) - c * x;
+					double e = R[x * width + y + 1] - R[x * width + y] - b * (2 * y + 1) - c * x;
 
 					double x_appr = (c * e - 2 * b * d) / (4 * a * b - c * c);
 					double y_appr = (c * d - 2 * a * e) / (4 * a * b - c * c);
